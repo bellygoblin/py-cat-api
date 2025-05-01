@@ -1,6 +1,9 @@
 import requests
 import requests.packages
 from typing import List, Dict
+from json import JSONDecodeError
+from the_cat_api.exceptions import TheCatApiException
+from the_cat_api.models import Result
 
 class RestAdapter:
   def __init__(self, hostname: str, api_key: str = '', ver: str = 'v1', ssl_verify: bool = True):
@@ -23,8 +26,17 @@ class RestAdapter:
   def _do(self, http_method: str, endpoint: str, ep_params: Dict = None, data: Dict = None):
     full_url = self.url + endpoint
     headers = {'x-api-key': self._api_key}
-    response = requests.request(method=http_method, url=full_url, verify=self._ssl_verify, headers=headers, params=ep_params, json=data)
-    data_out = response.json()
+
+    try: 
+      response = requests.request(method=http_method, url=full_url, verify=self._ssl_verify, headers=headers, params=ep_params, json=data)
+    except requests.exceptions.RequestException as e:
+      raise TheCatApiException("Request failed") from e
+    
+    try:
+      data_out = response.json()
+    except (ValueError, JSONDecodeError) as e:
+      raise TheCatApiException("Bad JSON in reponse") from e
+    
     if response.status_code >= 200 and response.status_code <= 299:     # OK
       return data_out
     raise Exception(data_out["message"])
