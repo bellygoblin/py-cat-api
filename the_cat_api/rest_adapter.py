@@ -14,16 +14,16 @@ class RestAdapter:
       # noinspection PyUnresolvedReferences
       requests.packages.urllib3.disable_warings()
 
-  def get(self, endpoint: str, ep_params: Dict = None) -> List[Dict]:
+  def get(self, endpoint: str, ep_params: Dict = None) -> Result:
     return self._do(http_method='GET', endpoint=endpoint, ep_params=ep_params)
   
-  def post(self, endpoint: str, ep_params: Dict = None, data: Dict = None) -> List[Dict]:
+  def post(self, endpoint: str, ep_params: Dict = None, data: Dict = None) -> Result:
     return self._do(http_method='POST', endpoint=endpoint, ep_params=ep_params, data=data)
   
-  def delete(self, endpint: str, ep_params: Dict = None, data: Dict = None):
+  def delete(self, endpint: str, ep_params: Dict = None, data: Dict = None) -> Result:
     return self._do(http_method='DELETE', endpoint=endpint, ep_params=ep_params, data=data)
   
-  def _do(self, http_method: str, endpoint: str, ep_params: Dict = None, data: Dict = None):
+  def _do(self, http_method: str, endpoint: str, ep_params: Dict = None, data: Dict = None) -> Result:
     full_url = self.url + endpoint
     headers = {'x-api-key': self._api_key}
 
@@ -37,6 +37,6 @@ class RestAdapter:
     except (ValueError, JSONDecodeError) as e:
       raise TheCatApiException("Bad JSON in reponse") from e
     
-    if response.status_code >= 200 and response.status_code <= 299:     # OK
-      return data_out
-    raise Exception(data_out["message"])
+    if 299 >= response.status_code >= 200:     # OK
+      return Result(response.status_code, message=response.reason, data=data_out)
+    raise TheCatApiException(f"{response.status_code}: {response.reason}")
