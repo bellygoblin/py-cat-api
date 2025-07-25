@@ -1,0 +1,17 @@
+meta {
+  name: Cat Facts
+  type: http
+  seq: 2
+}
+
+get {
+  url: https://api.thecatapi.com/v1/facts
+  body: none
+  auth: apikey
+}
+
+auth:apikey {
+  key: x-api-key
+  value: live_EgG33rGax7TRn7BWGVkqBTCf6asd2J0JabdkWcKNhzJMil10sIPCx3pJah1plKEn
+  placement: header
+}
